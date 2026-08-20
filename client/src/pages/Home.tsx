@@ -1,33 +1,48 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { EmptyState } from "@/components/EmptyState";
+import { MetricCard } from "@/components/MetricCard";
+import { SectionHeader } from "@/components/SectionHeader";
+import { TransactionDialog } from "@/components/TransactionDialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { useFinanceContext } from "@/contexts/FinanceContext";
+import { formatCurrency, formatDate } from "@/lib/format";
+import { trpc } from "@/lib/trpc";
+import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ArrowUpRight, CreditCard, Landmark, Plus, ReceiptText, TrendingDown, TrendingUp, WalletCards } from "lucide-react";
+import { useLocation } from "wouter";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const tooltipStyle = { background: "#1a1b26", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, color: "#e2e8f0", fontSize: 12 };
+
 export default function Home() {
-  // The useAuth hook provides authentication state.
-  // To implement login/logout, call logout(), or start login from an event
-  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
-  // startLogin() during render (no href={startLogin()}) — it mints a one-time
-  // nonce cookie and must run only at the moment of navigation.
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
-
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
+  const { view, isTogether } = useFinanceContext();
+  const [_, setLocation] = useLocation();
+  const dashboard = trpc.finance.dashboard.useQuery({ context: view });
+  const reports = trpc.finance.reports.useQuery({ context: view });
+  const data = dashboard.data;
+  if (dashboard.isLoading) return <DashboardSkeleton />;
+  if (dashboard.error) return <EmptyState icon={<WalletCards className="h-5 w-5" />} title="A visão compartilhada ainda não está pronta" description={dashboard.error.message} action={{ label: "Configurar Nós dois", onClick: () => setLocation("/nos-dois") }} />;
+  const monthly = (reports.data?.monthly ?? []).map(item => ({ ...item, month: item.key.slice(5), receitas: item.incomeCents / 100, despesas: item.expenseCents / 100 }));
+  const totalExpenses = data?.expensesByCategory.reduce((sum, entry) => sum + entry.valueCents, 0) ?? 0;
+  return <div>
+    <SectionHeader eyebrow={isTogether ? "NÓS DOIS" : "VISÃO PESSOAL"} title={isTogether ? "O patrimônio que vocês constroem juntos." : "Sua vida financeira, em perspectiva."} description={isTogether ? "Totais consolidados dos dois perfis, preservando as operações individuais." : "Acompanhe o que entrou, o que saiu e o que está crescendo neste mês."} action={!isTogether ? <TransactionDialog /> : undefined} />
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <MetricCard label="Patrimônio líquido" valueCents={data?.summary.netWorthCents ?? 0} detail="em todas as contas" trend={data?.summary.variationPercent} icon={<Landmark className="h-5 w-5" />} />
+      <MetricCard label="Saldo disponível" valueCents={data?.summary.netWorthCents ?? 0} detail="posição atual" accent="sky" icon={<WalletCards className="h-5 w-5" />} />
+      <MetricCard label="Receitas" valueCents={data?.summary.incomeCents ?? 0} detail="neste mês" accent="emerald" icon={<TrendingUp className="h-5 w-5" />} />
+      <MetricCard label="Despesas" valueCents={data?.summary.expenseCents ?? 0} detail="neste mês" accent="rose" icon={<TrendingDown className="h-5 w-5" />} />
     </div>
-  );
+    <div className="mt-5 grid gap-5 xl:grid-cols-[1.5fr_.9fr]">
+      <section className="atlas-panel overflow-hidden p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-white">Fluxo de caixa</p><p className="mt-1 text-xs text-slate-500">Receitas e despesas dos últimos seis meses</p></div><span className={`rounded-lg px-2.5 py-1 text-xs font-medium ${(data?.summary.cashflowCents ?? 0) >= 0 ? "bg-emerald-400/10 text-emerald-300" : "bg-rose-400/10 text-rose-300"}`}>{formatCurrency(data?.summary.cashflowCents ?? 0)} no mês</span></div>
+        <div className="mt-6 h-[255px]">{monthly.length ? <ResponsiveContainer width="100%" height="100%"><AreaChart data={monthly} margin={{ top: 8, right: 4, left: -18, bottom: 0 }}><defs><linearGradient id="incomeArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#34d399" stopOpacity={.26} /><stop offset="100%" stopColor="#34d399" stopOpacity={0} /></linearGradient><linearGradient id="expenseArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#fb7185" stopOpacity={.18} /><stop offset="100%" stopColor="#fb7185" stopOpacity={0} /></linearGradient></defs><CartesianGrid vertical={false} stroke="rgba(255,255,255,.06)" /><XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#64748b", fontSize: 11 }} /><YAxis tickLine={false} axisLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={(value: number) => `R$${Math.round(value / 1000)}k`} /><Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [formatCurrency(value * 100), ""]} /><Area type="monotone" dataKey="receitas" name="Receitas" stroke="#34d399" strokeWidth={2} fill="url(#incomeArea)" /><Area type="monotone" dataKey="despesas" name="Despesas" stroke="#fb7185" strokeWidth={2} fill="url(#expenseArea)" /></AreaChart></ResponsiveContainer> : <div className="grid h-full place-items-center text-sm text-slate-600">Sem movimentações para exibir.</div>}</div>
+      </section>
+      <section className="atlas-panel p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-white">Onde você mais gastou</p><p className="mt-1 text-xs text-slate-500">Distribuição no mês atual</p></div><button onClick={() => setLocation("/relatorios")} className="text-xs font-medium text-violet-300 hover:text-violet-200">Ver relatório</button></div>
+        <div className="mt-3 flex h-[255px] items-center">{data?.expensesByCategory.length ? <><div className="h-full w-[48%]"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={data.expensesByCategory} dataKey="valueCents" nameKey="name" innerRadius={52} outerRadius={78} paddingAngle={3} stroke="none">{data.expensesByCategory.map((item, index) => <Cell key={index} fill={item.color} />)}</Pie><Tooltip contentStyle={tooltipStyle} formatter={(value: number) => formatCurrency(value)} /></PieChart></ResponsiveContainer></div><div className="w-[52%] space-y-3">{data.expensesByCategory.slice(0, 4).map(item => <div key={item.name} className="flex items-center gap-2"><span className="h-2 w-2 rounded-full" style={{ background: item.color }} /><span className="min-w-0 flex-1 truncate text-xs text-slate-400">{item.name}</span><span className="text-xs font-medium text-slate-200">{totalExpenses ? Math.round(item.valueCents / totalExpenses * 100) : 0}%</span></div>)}</div></> : <div className="w-full text-center text-sm text-slate-600">Nenhuma despesa neste mês.</div>}</div>
+      </section>
+    </div>
+    <div className="mt-5 grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
+      <section className="atlas-panel overflow-hidden"><div className="flex items-center justify-between border-b border-white/[0.07] p-5 sm:p-6"><div><p className="text-sm font-semibold text-white">Movimentações recentes</p><p className="mt-1 text-xs text-slate-500">Últimos lançamentos registrados</p></div><button onClick={() => setLocation("/transacoes")} className="text-xs font-medium text-violet-300 hover:text-violet-200">Ver todas</button></div>{data?.recent.length ? <div>{data.recent.map(transaction => <div key={transaction.id} className="flex items-center gap-3 border-b border-white/[0.055] px-5 py-3.5 last:border-0 sm:px-6"><span className={`grid h-9 w-9 place-items-center rounded-xl ${transaction.type === "income" ? "bg-emerald-400/10 text-emerald-300" : "bg-rose-400/10 text-rose-300"}`}>{transaction.type === "income" ? <ArrowUpRight className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-200">{transaction.description}</p><p className="mt-0.5 text-xs text-slate-500">{transaction.categoryName ?? transaction.accountName} · {formatDate(transaction.occurredAt)}{isTogether && transaction.ownerName ? ` · ${transaction.ownerName}` : ""}</p></div><p className={`text-sm font-semibold ${transaction.type === "income" ? "text-emerald-300" : "text-slate-100"}`}>{transaction.type === "income" ? "+" : "−"}{formatCurrency(transaction.amountCents)}</p></div>)}</div> : <div className="p-6"><EmptyState icon={<ReceiptText className="h-5 w-5" />} title="Nada por aqui ainda" description="Registre sua primeira receita ou despesa para acompanhar seu histórico." action={{ label: "Registrar transação", onClick: () => setLocation("/transacoes") }} /></div>}</section>
+      <section className="atlas-panel p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-white">Suas contas</p><p className="mt-1 text-xs text-slate-500">Saldos consolidados</p></div><button onClick={() => setLocation("/contas")} className="text-xs font-medium text-violet-300 hover:text-violet-200">Gerenciar</button></div><div className="mt-5 space-y-3">{data?.accountBalances.length ? data.accountBalances.slice(0, 4).map(account => <div key={account.id} className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3.5"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: account.color }} /><span className="text-sm font-medium text-slate-300">{account.name}</span></div><span className="text-sm font-semibold text-white">{formatCurrency(account.balanceCents)}</span></div><p className="mt-1.5 pl-4.5 text-[11px] capitalize text-slate-600">{account.type.replace("_", " ")}</p></div>) : <div className="rounded-2xl border border-dashed border-white/[0.1] p-5 text-center"><p className="text-sm text-slate-500">Crie uma conta para começar.</p><Button onClick={() => setLocation("/contas")} variant="ghost" className="mt-2 text-xs text-violet-300 hover:bg-violet-400/10 hover:text-violet-200"><Plus className="mr-1 h-3.5 w-3.5" />Adicionar conta</Button></div>}</div></section>
+    </div>
+  </div>;
 }
+
+function DashboardSkeleton() { return <div className="space-y-5 animate-pulse"><div className="h-20 w-1/2 rounded-2xl bg-white/[0.04]" /><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-40 rounded-2xl bg-white/[0.04]" />)}</div><div className="grid gap-5 xl:grid-cols-2"><div className="h-80 rounded-2xl bg-white/[0.04]" /><div className="h-80 rounded-2xl bg-white/[0.04]" /></div></div>; }

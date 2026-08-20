@@ -1,0 +1,21 @@
+# Project TODO
+
+- [x] Modelar entidades financeiras com isolamento rígido por proprietário e um espaço compartilhado para o casal.
+- [x] Implementar OAuth e carregamento automático da identidade do usuário autenticado.
+- [ ] Criar onboarding para configurar perfil, moeda, contas iniciais e vínculo seguro entre os dois perfis.
+- [x] Criar dashboard individual com saldo, receitas, despesas, patrimônio líquido, variação mensal e gráficos responsivos.
+- [x] Implementar alternância de contexto com o rótulo exato "Nós dois" e consolidação restrita ao espaço compartilhado.
+- [x] Implementar contas, carteiras e cartões com saldos individuais e histórico de movimentações.
+- [x] Implementar cadastro, edição, exclusão, categorias, tags, datas, descrições e anexos de transações.
+- [x] Implementar orçamento mensal por categoria com progresso, limites e alertas visuais.
+- [x] Implementar metas financeiras com valor-alvo, prazo, contribuições e histórico.
+- [x] Implementar relatórios avançados de patrimônio, categorias, fluxo de caixa e comparativos de período.
+- [x] Construir design system premium em dark mode com sidebar, tipografia, acessibilidade, responsividade e microinterações.
+- [x] Configurar manifest, ícones e service worker para instalação PWA em mobile e desktop.
+- [x] Criar testes automatizados para autorização, cálculos financeiros e operações críticas.
+- [x] Validar comportamento no navegador, acessibilidade básica e adaptação para telas pequenas.
+- [x] Documentar recursos, limites atuais e instruções de uso.
+- [x] Exibir o histórico de movimentações associado a cada conta ou cartão no módulo de contas.
+- [x] Confirmar por código e testes a cobertura dos relatórios de patrimônio, categoria, fluxo de caixa e comparação de períodos.
+- [x] Cobrir em testes o isolamento individual, a autorização de operações e as regras do modo Nós dois.
+- [x] Executar e registrar validação básica de foco, rótulos e navegação por teclado.

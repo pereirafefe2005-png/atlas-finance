@@ -1,0 +1,21 @@
+{
+  "name": "Atlas Finance",
+  "short_name": "Atlas",
+  "description": "Gestão financeira pessoal e a dois.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#0c0d13",
+  "theme_color": "#0c0d13",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/manus-storage/atlas-finance-icon_c0f2865b.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
