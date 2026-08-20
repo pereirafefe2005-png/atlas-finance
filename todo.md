@@ -27,9 +27,9 @@
 - [x] Implementar os recursos selecionados a partir do benchmark, sem reproduzir código, marca, identidade visual ou conteúdo de terceiros.
 - [x] Substituir as dependências de autenticação, armazenamento e infraestrutura específicas da plataforma por componentes portáveis configurados por ambiente.
 - [x] Criar documentação de execução local, banco de dados, variáveis de ambiente e implantação independente.
-- [ ] Inicializar e preparar o repositório Git com arquivos de configuração, exclusões seguras e histórico de versão.
+- [x] Inicializar e preparar o repositório Git com arquivos de configuração, exclusões seguras e histórico de versão.
 - [ ] Publicar o repositório remoto somente após confirmação explícita do provedor, proprietário e visibilidade desejada.
-- [ ] Remover o remoto interno atual e manter o repositório local pronto para vinculação a um destino escolhido pelo usuário.
+- [x] Remover o remoto interno atual e manter o repositório local pronto para vinculação a um destino escolhido pelo usuário.
 - [x] Criar central de recorrências, assinaturas e calendário financeiro com projeção de próximas cobranças.
 - [x] Implementar revisões de transações, divisão por categorias e transferências entre contas.
 - [x] Evoluir orçamento com planejamento base zero, rollover e valor disponível para gastar.
