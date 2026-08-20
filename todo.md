@@ -1,8 +1,8 @@
 # Project TODO
 
 - [x] Modelar entidades financeiras com isolamento rígido por proprietário e um espaço compartilhado para o casal.
-- [x] Implementar OAuth e carregamento automático da identidade do usuário autenticado.
-- [ ] Criar onboarding para configurar perfil, moeda, contas iniciais e vínculo seguro entre os dois perfis.
+- [x] Implementar OAuth e carregamento automático da identidade do usuário autenticado. Substituído posteriormente por autenticação local portável.
+- [x] Criar onboarding para configurar perfil, moeda, contas iniciais e vínculo seguro entre os dois perfis.
 - [x] Criar dashboard individual com saldo, receitas, despesas, patrimônio líquido, variação mensal e gráficos responsivos.
 - [x] Implementar alternância de contexto com o rótulo exato "Nós dois" e consolidação restrita ao espaço compartilhado.
 - [x] Implementar contas, carteiras e cartões com saldos individuais e histórico de movimentações.
@@ -19,3 +19,34 @@
 - [x] Confirmar por código e testes a cobertura dos relatórios de patrimônio, categoria, fluxo de caixa e comparação de períodos.
 - [x] Cobrir em testes o isolamento individual, a autorização de operações e as regras do modo Nós dois.
 - [x] Executar e registrar validação básica de foco, rótulos e navegação por teclado.
+- [x] Implementar etapas acionáveis de onboarding para preferências, primeira conta e vínculo seguro dos perfis.
+- [x] Documentar e refletir tecnicamente a limitação de moeda BRL na primeira versão.
+- [x] Adicionar testes para a conclusão das etapas críticas do onboarding.
+- [x] Pesquisar os principais aplicativos premium de finanças pessoais e documentar funcionalidades, limitações e fontes oficiais.
+- [x] Definir uma matriz priorizada de recursos competitivos compatíveis com o Atlas Finance e com a privacidade de dois perfis.
+- [x] Implementar os recursos selecionados a partir do benchmark, sem reproduzir código, marca, identidade visual ou conteúdo de terceiros.
+- [x] Substituir as dependências de autenticação, armazenamento e infraestrutura específicas da plataforma por componentes portáveis configurados por ambiente.
+- [x] Criar documentação de execução local, banco de dados, variáveis de ambiente e implantação independente.
+- [ ] Inicializar e preparar o repositório Git com arquivos de configuração, exclusões seguras e histórico de versão.
+- [ ] Publicar o repositório remoto somente após confirmação explícita do provedor, proprietário e visibilidade desejada.
+- [ ] Remover o remoto interno atual e manter o repositório local pronto para vinculação a um destino escolhido pelo usuário.
+- [x] Criar central de recorrências, assinaturas e calendário financeiro com projeção de próximas cobranças.
+- [x] Implementar revisões de transações, divisão por categorias e transferências entre contas.
+- [x] Evoluir orçamento com planejamento base zero, rollover e valor disponível para gastar.
+- [x] Implementar previsão de fluxo de caixa e alertas internos de orçamento, saldo e contas próximas.
+- [x] Adicionar importação e exportação CSV com validação e regras de categorização por descrição.
+- [x] Implementar planejamento manual de quitação de dívidas e acompanhamento de alocação de investimentos.
+- [x] Criar autenticação local independente, armazenamento configurável em disco e PWA sem recursos externos da plataforma anterior.
+- [x] Criar arquivos de ambiente documentados, Docker Compose, imagem de execução e instruções de implantação autônoma.
+- [x] Executar e registrar validação final de tipagem, testes e build após a migração portátil.
+- [x] Validar por código os fluxos de cadastro, login, logout, upload local e instalação PWA sem referências externas.
+- [x] Mapear explicitamente os recursos do benchmark para seus módulos e testes de implementação.
+- [x] Criar o arquivo `.env.example` sem segredos para configuração independente e referenciá-lo na documentação. Substituído por documentação equivalente em `docs/ENVIRONMENT.md`, conforme a política de segredos.
+- [x] Criar uma matriz verificável de recurso pesquisado, módulo entregue e teste ou evidência correspondente.
+- [x] Cobrir em testes ou por inspeção de código o upload local e o registro PWA, além de explicitar o escopo dos testes de autenticação.
+- [x] Normalizar segmentos de caminho de anexos para impedir a exposição de `..` nas chaves e URLs locais.
+- [x] Testar cadastro e login locais com sucesso, credencial inválida e e-mail já existente sem usar dados reais.
+- [x] Vincular cada recurso premium priorizado a uma evidência direta de implementação e validação no código.
+- [x] Testar funcionalmente importação/exportação, regras de categorização, dívidas e posições de investimento, incluindo erros de entrada.
+- [x] Verificar que a central Planejamento do cliente chama as rotas premium correspondentes.
+- [x] Testar erros de entrada para regras de categoria, dívidas e posições de investimento sem persistir dados inválidos.

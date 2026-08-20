@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: atlas_finance
+      MYSQL_USER: atlas
+      MYSQL_PASSWORD: atlas_local_password
+      MYSQL_ROOT_PASSWORD: altere-esta-senha-root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-paltere-esta-senha-root"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mysql://atlas:atlas_local_password@db:3306/atlas_finance
+      UPLOAD_DIR: /data/uploads
+    ports:
+      - "3000:3000"
+    volumes:
+      - uploads_data:/data/uploads
+
+volumes:
+  mysql_data:
+  uploads_data:

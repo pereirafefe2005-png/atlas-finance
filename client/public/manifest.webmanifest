@@ -12,9 +12,9 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/manus-storage/atlas-finance-icon_c0f2865b.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "/atlas-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]

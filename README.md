@@ -4,7 +4,7 @@ O **Atlas Finance** é um aplicativo de gestão financeira pessoal com uma visã
 
 ## Como usar
 
-Após entrar com sua conta, adicione as contas e carteiras que compõem sua vida financeira. Em seguida, registre receitas e despesas com categoria, etiquetas, data, descrição e, quando necessário, um comprovante de até 5 MB nos formatos PNG, JPG, WebP ou PDF. Os indicadores e relatórios passam a refletir os dados cadastrados no seu perfil.
+Após criar um acesso local com **e-mail e senha**, complete a jornada inicial para confirmar BRL, cadastrar a primeira conta e, opcionalmente, iniciar o vínculo seguro em **Nós dois**. Em seguida, registre receitas e despesas com categoria, etiquetas, data, descrição e, quando necessário, um comprovante de até 5 MB nos formatos PNG, JPG, WebP ou PDF. Os indicadores e relatórios passam a refletir os dados cadastrados no seu perfil.
 
 | Área | Finalidade |
 | --- | --- |
@@ -15,10 +15,19 @@ Após entrar com sua conta, adicione as contas e carteiras que compõem sua vida
 | Metas | Cria objetivos com prazo e registra contribuições ao longo do tempo. |
 | Relatórios | Exibe evolução patrimonial, fluxo de caixa, categorias e leituras de período. |
 | Nós dois | Cria ou aceita um convite para consolidar os dados de dois perfis. |
+| Planejamento | Centraliza recorrências, revisão, transferências, orçamento base zero, previsão, regras, CSV, dívidas e investimentos manuais. |
 
 ## Privacidade e espaço compartilhado
 
 No modo individual, cada consulta e alteração é restrita ao proprietário autenticado. O modo **Nós dois** só é liberado depois que dois perfis aceitam o mesmo vínculo. Ele consolida indicadores e relatórios para leitura, mas mantém a autoria de cada transação e não permite editar dados do parceiro pela visão conjunta.
+
+## Execução independente
+
+O aplicativo usa autenticação local por e-mail e senha, sessões assinadas em cookies HTTP-only, MySQL e um adaptador de anexos em disco. Não exige o runtime, login, telemetria, proxy de armazenamento ou hospedagem da plataforma anterior. Para executar fora dela, instale Node.js 22 e MySQL 8, copie [`.env.example`](./.env.example) para `.env`, configure as variáveis detalhadas em [`docs/ENVIRONMENT.md`](./docs/ENVIRONMENT.md), execute `pnpm install`, `pnpm db:migrate` e `pnpm dev`. Como alternativa, use `docker compose up --build`; antes de expor o serviço, altere as senhas presentes no arquivo de composição.
+
+> Para uma implantação com múltiplas instâncias, use um volume persistente ou substitua o adaptador de anexos por armazenamento S3 compatível. Integrações bancárias e cotações ao vivo requerem provedores, contratos e consentimento próprios; elas não são simuladas nesta versão.
+
+Os recursos entregues a partir do benchmark e suas evidências técnicas estão consolidados em [`docs/FEATURE_COVERAGE.md`](./docs/FEATURE_COVERAGE.md).
 
 ## Instalação como aplicativo
 

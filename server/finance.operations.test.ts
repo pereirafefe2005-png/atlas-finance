@@ -4,6 +4,7 @@ import type { TrpcContext } from "./_core/context";
 const mocks = vi.hoisted(() => ({
   getDb: vi.fn(),
   insertValues: vi.fn(),
+  onDuplicateKeyUpdate: vi.fn(),
   requireOwnedAccount: vi.fn(),
   requireOwnedCategory: vi.fn(),
   requireOwnedGoal: vi.fn(),
@@ -40,7 +41,8 @@ function createContext(): TrpcContext {
 
 describe("operações financeiras críticas", () => {
   beforeEach(() => {
-    mocks.insertValues.mockReset().mockResolvedValue([{ insertId: 9 }]);
+    mocks.onDuplicateKeyUpdate.mockReset().mockResolvedValue([{ insertId: 9 }]);
+    mocks.insertValues.mockReset().mockReturnValue({ onDuplicateKeyUpdate: mocks.onDuplicateKeyUpdate });
     mocks.getDb.mockReset().mockResolvedValue({ insert: () => ({ values: mocks.insertValues }) });
     mocks.requireOwnedAccount.mockReset().mockResolvedValue({ id: 5, ownerId: 42 });
     mocks.requireOwnedCategory.mockReset().mockResolvedValue({ id: 3, ownerId: 42 });
@@ -59,5 +61,13 @@ describe("operações financeiras críticas", () => {
 
     await expect(appRouter.createCaller(createContext()).finance.transactions.create({ accountId: 5, categoryId: null, type: "expense", amountCents: 4900, description: "Compra", occurredAt: new Date("2026-08-20T12:00:00.000Z"), tagIds: [] })).rejects.toThrow("sem permissão");
     expect(mocks.insertValues).not.toHaveBeenCalled();
+  });
+
+  it("persiste a conclusão do onboarding somente no perfil autenticado", async () => {
+    const result = await appRouter.createCaller(createContext()).finance.preferences.completeOnboarding({ currency: "BRL" });
+
+    expect(result).toEqual({ success: true });
+    expect(mocks.insertValues).toHaveBeenCalledWith(expect.objectContaining({ ownerId: 42, currency: "BRL", onboardingCompleted: 1 }));
+    expect(mocks.onDuplicateKeyUpdate).toHaveBeenCalledWith(expect.objectContaining({ set: expect.objectContaining({ currency: "BRL", onboardingCompleted: 1 }) }));
   });
 });

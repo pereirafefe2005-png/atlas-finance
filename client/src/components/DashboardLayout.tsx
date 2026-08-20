@@ -3,10 +3,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FinanceProvider, useFinanceContext } from "@/contexts/FinanceContext";
-import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { BarChart3, Bell, BriefcaseBusiness, ChevronDown, CircleHelp, Download, Goal, Landmark, LayoutDashboard, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, UsersRound, WalletCards, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BarChart3, Bell, BriefcaseBusiness, ChevronDown, CircleHelp, Download, Goal, Landmark, LayoutDashboard, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, UsersRound, WalletCards, X, CalendarClock } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
@@ -17,6 +16,7 @@ const navigation = [
   { icon: BriefcaseBusiness, label: "Orçamento", path: "/orcamento" },
   { icon: Goal, label: "Metas", path: "/metas" },
   { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
+  { icon: CalendarClock, label: "Planejamento", path: "/planejamento" },
 ];
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
@@ -30,6 +30,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 }
 
 function SignInScreen() {
+  const utils = trpc.useUtils();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [name, setName] = useState(""); const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
+  const finish = async () => { await utils.auth.me.invalidate(); };
+  const login = trpc.auth.login.useMutation({ onSuccess: finish, onError: error => toast.error(error.message) });
+  const register = trpc.auth.register.useMutation({ onSuccess: finish, onError: error => toast.error(error.message) });
+  const submit = (event: FormEvent) => { event.preventDefault(); if (mode === "login") login.mutate({ email, password }); else register.mutate({ name, email, password }); };
   return (
     <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#090a0f] px-5 text-white">
       <div className="absolute -left-36 top-0 h-96 w-96 rounded-full bg-violet-600/20 blur-[130px]" />
@@ -39,7 +46,8 @@ function SignInScreen() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Atlas Finance</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em]">Clareza para cada decisão.</h1>
         <p className="mt-4 text-sm leading-6 text-slate-400">Entre para organizar suas finanças individuais e, quando quiser, construir uma visão compartilhada a dois.</p>
-        <Button onClick={() => startLogin()} className="mt-8 h-12 w-full rounded-xl bg-violet-500 text-sm font-semibold text-white shadow-lg shadow-violet-950/40 hover:bg-violet-400">Entrar com segurança</Button>
+        <form className="mt-7 space-y-3" onSubmit={submit}>{mode === "register" ? <label className="block text-xs font-medium text-slate-400">Nome<input required value={name} onChange={event => setName(event.target.value)} className="atlas-input mt-1.5 h-11" placeholder="Seu nome" /></label> : null}<label className="block text-xs font-medium text-slate-400">E-mail<input required type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className="atlas-input mt-1.5 h-11" placeholder="voce@exemplo.com" /></label><label className="block text-xs font-medium text-slate-400">Senha<input required type="password" minLength={mode === "register" ? 12 : 1} autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={event => setPassword(event.target.value)} className="atlas-input mt-1.5 h-11" placeholder={mode === "register" ? "Mínimo de 12 caracteres" : "Sua senha"} /></label><Button disabled={login.isPending || register.isPending} type="submit" className="h-12 w-full rounded-xl bg-violet-500 text-sm font-semibold text-white shadow-lg shadow-violet-950/40 hover:bg-violet-400">{mode === "login" ? "Entrar com segurança" : "Criar conta protegida"}</Button></form>
+        <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} className="mt-4 w-full text-xs font-medium text-violet-300 hover:text-violet-200">{mode === "login" ? "Ainda não possui conta? Criar meu acesso" : "Já possui conta? Entrar"}</button>
         <p className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-500"><ShieldCheck className="h-3.5 w-3.5" /> Seus dados permanecem isolados por perfil.</p>
       </section>
     </main>
@@ -80,7 +88,7 @@ function AtlasShell({ children }: { children: React.ReactNode }) {
       <aside className={`fixed inset-y-0 left-0 z-50 flex w-[276px] flex-col border-r border-white/[0.07] bg-[#0d0e15]/95 px-3 py-4 backdrop-blur-xl transition-transform duration-200 lg:translate-x-0 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-12 items-center justify-between px-2">
           <button onClick={() => setLocation("/")} className="flex items-center gap-3 text-left">
-            <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 shadow-lg shadow-violet-950/40"><img src="/manus-storage/atlas-finance-icon_c0f2865b.png" alt="" className="h-full w-full object-cover" /></span>
+            <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 shadow-lg shadow-violet-950/40"><Landmark className="h-4 w-4 text-white" /></span>
             <span><span className="block text-sm font-semibold tracking-[-0.03em] text-white">Atlas Finance</span><span className="block text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Patrimônio pessoal</span></span>
           </button>
           <button className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white lg:hidden" onClick={() => setMenuOpen(false)} aria-label="Fechar menu"><X className="h-4 w-4" /></button>

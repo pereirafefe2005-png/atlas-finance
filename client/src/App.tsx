@@ -13,6 +13,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Together from "./pages/Together";
 import Transactions from "./pages/Transactions";
+import Planning from "./pages/Planning";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
         <Route path={"/orcamento"} component={Budgets} />
         <Route path={"/metas"} component={Goals} />
         <Route path={"/relatorios"} component={Reports} />
+        <Route path={"/planejamento"} component={Planning} />
         <Route path={"/nos-dois"} component={Together} />
         <Route path={"/configuracoes"} component={Settings} />
         <Route path={"/404"} component={NotFound} />

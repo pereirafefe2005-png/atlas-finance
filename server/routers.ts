@@ -2,11 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { and, eq, inArray } from "drizzle-orm";
-import { accounts, budgets, categories, goalContributions, goals, householdMembers, households, tags, transactions } from "../drizzle/schema";
+import { accounts, budgets, categories, financePreferences, goalContributions, goals, householdMembers, households, tags, transactions } from "../drizzle/schema";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
-import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { authenticateLocalUser, createSession, registerLocalUser, sessionMaxAgeMs } from "./localAuth";
 import {
   ensureDefaultCategories,
   getDb,
@@ -27,6 +27,7 @@ import {
 } from "./db";
 import { buildAccountBalances, buildCategoryTotals, monthRange, previousMonthRange, summarizePeriod, type AccountSnapshot, type TransactionSnapshot } from "./finance";
 import { storagePut } from "./storage";
+import { premiumRouter } from "./premiumRouter";
 
 const contextSchema = z.object({ context: z.enum(["individual", "together"]).default("individual") });
 const monthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Informe o mês no formato AAAA-MM.");
@@ -64,9 +65,27 @@ function asAccounts(rows: Awaited<ReturnType<typeof listAccounts>>): AccountSnap
 }
 
 export const appRouter = router({
-  system: systemRouter,
+  premium: premiumRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => {
+      if (!opts.ctx.user) return null;
+      const { passwordHash: _passwordHash, ...safeUser } = opts.ctx.user;
+      return safeUser;
+    }),
+    register: publicProcedure.input(z.object({ name: z.string().trim().min(2).max(100), email: z.string().email().max(320), password: z.string().min(12).max(200) })).mutation(async ({ ctx, input }) => {
+      const user = await registerLocalUser(input);
+      const token = await createSession(user);
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: sessionMaxAgeMs() });
+      const { passwordHash: _passwordHash, ...safeUser } = user;
+      return safeUser;
+    }),
+    login: publicProcedure.input(z.object({ email: z.string().email().max(320), password: z.string().min(1).max(200) })).mutation(async ({ ctx, input }) => {
+      const user = await authenticateLocalUser(input.email, input.password);
+      const token = await createSession(user);
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: sessionMaxAgeMs() });
+      const { passwordHash: _passwordHash, ...safeUser } = user;
+      return safeUser;
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       ctx.res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(ctx.req), maxAge: -1 });
       return { success: true } as const;
@@ -107,7 +126,22 @@ export const appRouter = router({
           if (members.length >= 2) badRequest("Este espaço já atingiu o limite de dois participantes.");
           await db.insert(householdMembers).values({ householdId: found[0].id, userId: ctx.user.id });
           return { success: true };
-        }),
+      }),
+    }),
+    preferences: router({
+      get: protectedProcedure.query(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível." });
+        const existing = await db.select().from(financePreferences).where(eq(financePreferences.ownerId, ctx.user.id)).limit(1);
+        return { currency: existing[0]?.currency ?? "BRL", onboardingCompleted: Boolean(existing[0]?.onboardingCompleted) };
+      }),
+      completeOnboarding: protectedProcedure.input(z.object({ currency: z.literal("BRL") })).mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível." });
+        const completedAt = new Date();
+        await db.insert(financePreferences).values({ ownerId: ctx.user.id, currency: input.currency, onboardingCompleted: 1, completedAt }).onDuplicateKeyUpdate({ set: { currency: input.currency, onboardingCompleted: 1, completedAt } });
+        return { success: true };
+      }),
     }),
     dashboard: protectedProcedure.input(contextSchema).query(async ({ ctx, input }) => {
       const ownerIds = await getVisibleOwnerIds(ctx.user.id, input.context);
